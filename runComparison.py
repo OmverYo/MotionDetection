@@ -14,13 +14,10 @@ sql = "SELECT video_id FROM model_name WHERE video_id = 'BX_Dance01_01_FV_A113C1
 mycursor.execute(sql)
 
 # 실행한 SQL 코드의 출력 결과를 불러옵니다
-myresult = mycursor.fetchall()
-
-# 출력한 결과를 배열 형태에서 하나의 문자열로 바꿔줍니다
-myvideo = myresult[0]
+myresult = mycursor.fetchall()[0][0]
 
 # 출력될 모델의 영상은 데이터 베이스에서 가져온 해당 영상으로 지정합니다
-benchmark_video = myvideo[0]
+benchmark_video = myresult
 # 유저의 영상이 캠일 경우 0으로 지정
 user_video = 0
 
