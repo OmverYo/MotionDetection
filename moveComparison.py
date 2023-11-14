@@ -77,7 +77,7 @@ def compare_positions(benchmark_video, user_video):
 				cv2.putText(image_1, 'Error: {}%'.format(str(round(100*(float(error)),2))), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
 
 				# 정화도가 90% 가 넘을 경우 정확한 동작으로 표시합니다
-				if error < 0.3:
+				if error < 0.15:
 					cv2.putText(image_1, "CORRECT STEPS", (40, 440), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 					# 정확도를 측정 후 정확도 프레임 수를 1개 올립니다
 					correct_frames += 1
@@ -141,7 +141,7 @@ def compare_positions(benchmark_video, user_video):
 		except:
 			print("카메라에 인식할 대상이 없습니다")
 			break
-	
+
 	# 영상 종료 후 모든 창을 종료해줍니다
 	benchmark_cam.release()
 	user_cam.release()

@@ -1,7 +1,7 @@
-import moveComparison
+import move_comparison
 import mysql.connector
 
-mc = moveComparison
+mc = move_comparison
 
 # 데이터 베이스로 접속 할 정보를 입력합니다
 mydb = mysql.connector.connect(host = "localhost", user = "root", password = "0000", database = "metaports")
