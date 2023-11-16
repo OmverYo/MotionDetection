@@ -37,11 +37,12 @@ with mp_pose.Pose(model_complexity = 1, min_detection_confidence = 0.5, min_trac
 
         if (round(frame_counter / fps, 1) == 0.5 or round(frame_counter / fps, 1) == 0):
             for id, lm in enumerate(results.pose_landmarks.landmark):
-                h, w, c = image.shape
-                # print(id, lm.x, lm.y)
-                # print(id, lm)
-                cx, cy = int(lm.x * w), int(lm.y * h)
-                lmList.append([id, cx, cy])
+                if id not in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]:
+                    h, w, c = image.shape
+                    # print(id, lm.x, lm.y)
+                    # print(id, lm)
+                    cx, cy = int(lm.x * w), int(lm.y * h)
+                    lmList.append([id, cx, cy])
             
             frame_counter = 0
 
@@ -56,6 +57,7 @@ with mp_pose.Pose(model_complexity = 1, min_detection_confidence = 0.5, min_trac
 # print(result)
 
 with open('data.json', 'w') as f:
+
     json.dump(lmList, f)
 
 cap.release()

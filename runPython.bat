@@ -1,3 +1,8 @@
 @echo off
-"C:\Program Files\Python310\python.exe" "C:\Users\pc1\Desktop\CameraPractice\poseDetection.py" %*
-exit 0
+set python_executable="C:\Program Files\Python310\python.exe"
+
+set python_script=".\poseDetection.py"
+
+%python_executable% %python_script%
+
+exit(0)
