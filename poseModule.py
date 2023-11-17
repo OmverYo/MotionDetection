@@ -30,7 +30,7 @@ class poseDetector():
             for id, lm in enumerate(self.results.pose_landmarks.landmark):
                 if id not in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]:
                     h, w, c = img.shape
-                    print(id, lm)
+                    # print(id, lm)
                     cx, cy = int(lm.x * w), int(lm.y * h)
                     self.lmList.append([id, cx, cy])
                     if draw:

@@ -18,6 +18,12 @@ def compare_positions(benchmark_video, user_video):
 	detector_1 = pm.poseDetector()
 	detector_2 = pm.poseDetector()
 
+	awesome_frame = 0
+	great_frame = 0
+	good_frame = 0
+	ok_frame = 0
+	bad_frame = 0
+
 	# 영상의 시간 시간을 측정합니다
 	start = int(time.time())
 
@@ -46,7 +52,7 @@ def compare_positions(benchmark_video, user_video):
 			ret_val, image_1 = user_cam.read()
 			
 			# 해당 창을 특정 크기로 재설정합니다
-			image_1 = cv2.resize(image_1, (640, 480))
+			image_1 = cv2.resize(image_1, (720, 640))
 			# 유저의 영상을 좌우 반전하여 거울 모드로 합니다
 			image_1 = cv2.flip(image_1, 1)
 			# 이미지의 모션을 인식합니다
@@ -58,7 +64,7 @@ def compare_positions(benchmark_video, user_video):
 			ret_val_1, image_2 = benchmark_cam.read()
 
 			# 해당 창을 특정 크기로 재설정합니다
-			image_2 = cv2.resize(image_2, (960, 540))
+			image_2 = cv2.resize(image_2, (720, 640))
 			# 이미지의 모션을 인식합니다
 			image_2 = detector_2.findPose(image_2)
 			# 이미지의 위치를 인식합니다
@@ -95,29 +101,49 @@ def compare_positions(benchmark_video, user_video):
 
 				# 올바른 동작 프레임 수를 총 플레이 타임 프레임 수를 나눠 백분율로 표기합니다
 				cv2.putText(image_1, "Dance Steps Accurately Done: {}%".format(str(round(100*correct_frames/frame_counter, 2))), (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
+				
+				# 정확도가 90% 이상일 경우 Awesome 프레임 수를 올립니다
+				if error < 0.01:
+					awesome_frame += 1
 
+				# 정확도가 80% 이상일 경우 Great 프레임 수를 올립니다
+				elif error < 0.05 and error > 0.01:
+					great_frame += 1
+
+				# 정확도가 70% 이상일 경우 Good 프레임 수를 올립니다
+				elif error < 0.3 and error > 0.05:
+					good_frame += 1
+
+				# 정확도가 60% 이상일 경우 OK 프레임 수를 올립니다
+				elif error < 0.6 and error > 0.3:
+					ok_frame += 1
+
+				# 정확도가 60% 미만일 경우 Bad 프레임 수를 올립니다
+				elif error > 0.6:
+					bad_frame += 1
+				
 				# 프레임 기록 시작 5초 후 계산될 시간을 기록합니다 
 				end = int(time.time())
 
 				# 시작과 끝 프레임의 5초 간격이 된 경우
-				if ((end - start) == 5):
-					# 캡쳐 시간을 5초 추가합니다
-					capture_time += 5
-					# 정확도 리스트에 플레이 아이디, 캡쳐 시간, 정확도를 추가하여 넣습니다
-					accuracyList.append((play_id, capture_time, int(round(100*correct_frames/frame_counter, 2))))
-					# 시작 프레임 시간을 재설정합니다
+				if ((end - start) == 1):
+					# 정확도 프레임 수를 총 프레임 수를 나누어 백분률로 표기
+					print("\n")
+					print("Average", int(((awesome_frame + great_frame + good_frame + ok_frame)/frame_counter) * 100))
+					print("awesome", awesome_frame)
+					print("great", great_frame)
+					print("good", good_frame)
+					print("ok", ok_frame)
+					print("bad", bad_frame)
+
 					start = int(time.time())
-					# 프레임 수를 재설정합니다
-					frame_counter = 0
-					# 올바른 프레임 수를 재설정합니다
-					correct_frames = 0
 
 				# 모델의 영상과 플레이어의 영상을 출력시킵니다
 				cv2.imshow("Benchmark Video", image_2)
 				cv2.imshow("User Video", image_1)
 
 				cv2.moveWindow("Benchmark Video", 0, 0)
-				cv2.moveWindow("User Video", 1920, 0)
+				cv2.moveWindow("User Video", 720, 0)
 
 				# q 버튼을 누르면 모든 창을 종료합니다
 				fps_time = time.time()
