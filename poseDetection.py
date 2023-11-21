@@ -15,7 +15,7 @@ frame_counter = 0
 
 cap = cv2.VideoCapture(0)
 
-with mp_selfie_segmentation.SelfieSegmentation(model_selection = 0) as selfie_segmentation, mp_pose.Pose(model_complexity = 0, min_detection_confidence = 0.5, min_tracking_confidence = 0.5) as pose:
+with mp_selfie_segmentation.SelfieSegmentation(model_selection = 1) as selfie_segmentation, mp_pose.Pose(model_complexity = 0, min_detection_confidence = 0.5, min_tracking_confidence = 0.5) as pose:
     # 배경화면의 이미지를 설정 할 수 있으나 없음으로 설정
     bg_image = None
 

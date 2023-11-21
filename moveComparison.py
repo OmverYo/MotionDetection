@@ -102,34 +102,31 @@ def compare_positions(benchmark_video, user_video):
 				# 올바른 동작 프레임 수를 총 플레이 타임 프레임 수를 나눠 백분율로 표기합니다
 				cv2.putText(image_1, "Dance Steps Accurately Done: {}%".format(str(round(100*correct_frames/frame_counter, 2))), (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
 				
-				# 정확도가 90% 이상일 경우 Awesome 프레임 수를 올립니다
-				if error < 0.01:
-					awesome_frame += 1
-
-				# 정확도가 80% 이상일 경우 Great 프레임 수를 올립니다
-				elif error < 0.05 and error > 0.01:
-					great_frame += 1
-
-				# 정확도가 70% 이상일 경우 Good 프레임 수를 올립니다
-				elif error < 0.3 and error > 0.05:
-					good_frame += 1
-
-				# 정확도가 60% 이상일 경우 OK 프레임 수를 올립니다
-				elif error < 0.6 and error > 0.3:
-					ok_frame += 1
-
-				# 정확도가 60% 미만일 경우 Bad 프레임 수를 올립니다
-				elif error > 0.6:
-					bad_frame += 1
-				
 				# 프레임 기록 시작 5초 후 계산될 시간을 기록합니다 
 				end = int(time.time())
 
-				# 시작과 끝 프레임의 5초 간격이 된 경우
-				if ((end - start) == 1):
-					# 정확도 프레임 수를 총 프레임 수를 나누어 백분률로 표기
+				if end - start >= 1:
+					# 정확도가 90% 이상일 경우 Awesome 프레임 수를 올립니다
+					if error < 0.01:
+						awesome_frame += 1
+
+					# 정확도가 80% 이상일 경우 Great 프레임 수를 올립니다
+					elif error < 0.05 and error > 0.01:
+						great_frame += 1
+
+					# 정확도가 70% 이상일 경우 Good 프레임 수를 올립니다
+					elif error < 0.3 and error > 0.05:
+						good_frame += 1
+
+					# 정확도가 60% 이상일 경우 OK 프레임 수를 올립니다
+					elif error < 0.6 and error > 0.3:
+						ok_frame += 1
+
+					# 정확도가 60% 미만일 경우 Bad 프레임 수를 올립니다
+					elif error > 0.6:
+						bad_frame += 1
+					
 					print("\n")
-					print("Average", int(((awesome_frame + great_frame + good_frame + ok_frame)/frame_counter) * 100))
 					print("awesome", awesome_frame)
 					print("great", great_frame)
 					print("good", good_frame)
@@ -137,6 +134,10 @@ def compare_positions(benchmark_video, user_video):
 					print("bad", bad_frame)
 
 					start = int(time.time())
+
+				if capture_time == 5:
+					# 정확도 프레임 수를 총 프레임 수를 나누어 백분률로 표기
+					print("Average", round(((awesome_frame + great_frame + good_frame + ok_frame)/frame_counter) * 100, 1))
 
 				# 모델의 영상과 플레이어의 영상을 출력시킵니다
 				cv2.imshow("Benchmark Video", image_2)

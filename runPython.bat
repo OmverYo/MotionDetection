@@ -1,8 +1,4 @@
 @echo off
-set python_executable="C:\Program Files\Python310\python.exe"
-
-set python_script=".\poseDetection.py"
-
-%python_executable% %python_script%
-
-exit(0)
+if not DEFINED IS_MINIMIZED set IS_MINIMIZED=1 && start "" /min "%~dpnx0" %* && exit
+"C:\Program Files\Python310\python.exe" "C:\Users\pc1\Desktop\MotionDetection\test.py"
+pause

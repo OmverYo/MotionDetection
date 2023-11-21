@@ -26,7 +26,7 @@ with mp_pose.Pose(model_complexity = 1, min_detection_confidence = 0.5, min_trac
 
         # image.flags.writeable = False
         # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        # image = cv2.resize(image, (640, 480))
+        image = cv2.resize(image, (640, 480))
         results = pose.process(image)
 
         # image.flags.writeable = True
@@ -42,7 +42,7 @@ with mp_pose.Pose(model_complexity = 1, min_detection_confidence = 0.5, min_trac
                     # print(id, lm.x, lm.y)
                     # print(id, lm)
                     cx, cy = int(lm.x * w), int(lm.y * h)
-                    lmList.append([id, cx, cy])
+                    lmList.append((id, cx, cy))
             
             frame_counter = 0
 
