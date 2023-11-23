@@ -2,7 +2,7 @@ import cv2, time
 import poseModule as pm
 from scipy.spatial.distance import cosine
 from fastdtw import fastdtw
-# import json
+import json
 import mysql.connector
 
 mydb = mysql.connector.connect(host = "localhost", user = "root", password = "0000", database = "metaports")
@@ -71,7 +71,8 @@ while (user_cam.isOpened()):
         end = round(time.time(), 1)
 
         # 해당 프레임의 동작 비교가 끝난 후 다음 프레임의 좌표 값으로 이동
-        if ((end - start) == 1):
+        if end - start >= 1.0:
+            print(end - start)
             # 정확도가 90% 이상일 경우 Awesome 프레임 수를 올립니다
             if error < 0.1:
                 awesome_frame += 1
@@ -104,6 +105,8 @@ while (user_cam.isOpened()):
                 accuracyList.append(myresult[a])
                 a += 1
 
+            print("Array:", b)
+
             start = round(time.time(), 1)
 
         if ((end - start) == 5):
@@ -111,7 +114,7 @@ while (user_cam.isOpened()):
             print(int(((awesome_frame + great_frame + good_frame + ok_frame)/frame_counter) * 100))
 
     except:
-        print("카메라에 인식할 대상이 없습니다")
+        print("비교 모듈이 종료됩니다")
         break
 
 # 영상 종료 후 모든 창을 종료해줍니다

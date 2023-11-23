@@ -18,8 +18,8 @@ def compare_positions(benchmark_video, user_video):
 	detector_1 = pm.poseDetector()
 	detector_2 = pm.poseDetector()
 
+	perfect_frame = 0
 	awesome_frame = 0
-	great_frame = 0
 	good_frame = 0
 	ok_frame = 0
 	bad_frame = 0
@@ -59,7 +59,6 @@ def compare_positions(benchmark_video, user_video):
 			image_1 = detector_1.findPose(image_1)
 			# 이미지의 위치를 인식합니다
 			lmList_user = detector_1.findPosition(image_1)
-			del lmList_user[1:11]
 			
 			ret_val_1, image_2 = benchmark_cam.read()
 
@@ -69,7 +68,6 @@ def compare_positions(benchmark_video, user_video):
 			image_2 = detector_2.findPose(image_2)
 			# 이미지의 위치를 인식합니다
 			lmList_benchmark = detector_2.findPosition(image_2)
-			del lmList_benchmark[1:11]
 
 			# 모든 작업이 지나온 후 초당 프레임 수를 1개 올립니다
 			frame_counter += 1
@@ -82,7 +80,7 @@ def compare_positions(benchmark_video, user_video):
 				# 두 이미지를 비교하여 다른 값을 표시합니다
 				cv2.putText(image_1, 'Error: {}%'.format(str(round(100*(float(error)),2))), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
 
-				# 정화도가 90% 가 넘을 경우 정확한 동작으로 표시합니다
+				# 정확도가 90% 가 넘을 경우 정확한 동작으로 표시합니다
 				if error < 0.15:
 					cv2.putText(image_1, "CORRECT STEPS", (40, 440), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 					# 정확도를 측정 후 정확도 프레임 수를 1개 올립니다
@@ -106,38 +104,36 @@ def compare_positions(benchmark_video, user_video):
 				end = int(time.time())
 
 				if end - start >= 1:
-					# 정확도가 90% 이상일 경우 Awesome 프레임 수를 올립니다
-					if error < 0.01:
+					# 정확도가 95% 이상일 경우 Pefect 프레임 수를 올립니다
+					if error < 0.05:
+						perfect_frame += 1
+
+					# 정확도가 85% ~ 95% 경우 Awesome 프레임 수를 올립니다
+					elif error < 0.15 and error > 0.05:
 						awesome_frame += 1
 
-					# 정확도가 80% 이상일 경우 Great 프레임 수를 올립니다
-					elif error < 0.05 and error > 0.01:
-						great_frame += 1
-
-					# 정확도가 70% 이상일 경우 Good 프레임 수를 올립니다
-					elif error < 0.3 and error > 0.05:
+					# 정확도가 70% ~ 84% 경우 Good 프레임 수를 올립니다
+					elif error < 0.3 and error > 0.16:
 						good_frame += 1
 
-					# 정확도가 60% 이상일 경우 OK 프레임 수를 올립니다
-					elif error < 0.6 and error > 0.3:
+					# 정확도가 50% ~ 69% 경우 OK 프레임 수를 올립니다
+					elif error < 0.5 and error > 0.31:
 						ok_frame += 1
 
-					# 정확도가 60% 미만일 경우 Bad 프레임 수를 올립니다
-					elif error > 0.6:
+					# 정확도가 50% 미만일 경우 Bad 프레임 수를 올립니다
+					elif error > 0.5:
 						bad_frame += 1
 					
-					print("\n")
+					print("")
+					print("perfect", perfect_frame)
 					print("awesome", awesome_frame)
-					print("great", great_frame)
 					print("good", good_frame)
 					print("ok", ok_frame)
 					print("bad", bad_frame)
 
 					start = int(time.time())
 
-				if capture_time == 5:
-					# 정확도 프레임 수를 총 프레임 수를 나누어 백분률로 표기
-					print("Average", round(((awesome_frame + great_frame + good_frame + ok_frame)/frame_counter) * 100, 1))
+					capture_time += 1
 
 				# 모델의 영상과 플레이어의 영상을 출력시킵니다
 				cv2.imshow("Benchmark Video", image_2)
