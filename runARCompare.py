@@ -26,8 +26,7 @@ detector_1 = pm.poseDetector()
 # 정확도 값을 저장할 변수
 accuracyList = []
 
-# with open('data.json') as json_file:
-#     json_data = json.load(json_file)
+
 
 # FPS를 0으로 설정합니다
 fps_time = 0
@@ -36,8 +35,8 @@ fps_time = 0
 frame_counter = 0
 
 # 모션 인식 중 해당 정확도의 동작일 경우 해당 프레임 수를 저장합니다
+perfect_frame = 0
 awesome_frame = 0
-great_frame = 0
 good_frame = 0
 ok_frame = 0
 bad_frame = 0
@@ -70,34 +69,35 @@ while (user_cam.isOpened()):
 
         end = round(time.time(), 1)
 
-        # 해당 프레임의 동작 비교가 끝난 후 다음 프레임의 좌표 값으로 이동
-        if end - start >= 1.0:
-            print(end - start)
-            # 정확도가 90% 이상일 경우 Awesome 프레임 수를 올립니다
-            if error < 0.1:
+        if end - start >= 1:
+            # 정확도가 95% 이상일 경우 Pefect 프레임 수를 올립니다
+            if error < 0.05:
+                perfect_frame += 1
+
+            # 정확도가 85% ~ 95% 경우 Awesome 프레임 수를 올립니다
+            elif error < 0.15 and error > 0.05:
                 awesome_frame += 1
 
-            # 정확도가 80% 이상일 경우 Great 프레임 수를 올립니다
-            elif error < 0.2 and error > 0.1:
-                great_frame += 1
-
-            # 정확도가 70% 이상일 경우 Good 프레임 수를 올립니다
-            elif error < 0.3 and error > 0.2:
+            # 정확도가 70% ~ 84% 경우 Good 프레임 수를 올립니다
+            elif error < 0.3 and error > 0.16:
                 good_frame += 1
 
-            # 정확도가 60% 이상일 경우 OK 프레임 수를 올립니다
-            elif error < 0.4 and error > 0.3:
+            # 정확도가 50% ~ 69% 경우 OK 프레임 수를 올립니다
+            elif error < 0.5 and error > 0.31:
                 ok_frame += 1
 
-            # 정확도가 60% 미만일 경우 Bad 프레임 수를 올립니다
-            elif error > 0.4:
+            # 정확도가 50% 미만일 경우 Bad 프레임 수를 올립니다
+            elif error > 0.5:
                 bad_frame += 1
             
+            print("perfect", perfect_frame)
             print("awesome", awesome_frame)
-            print("great", great_frame)
             print("good", good_frame)
             print("ok", ok_frame)
             print("bad", bad_frame)
+
+            print("Average", int(((perfect_frame + awesome_frame + good_frame + ok_frame)/frame_counter) * 100))
+
             b += 22
             accuracyList = []
 
@@ -105,13 +105,7 @@ while (user_cam.isOpened()):
                 accuracyList.append(myresult[a])
                 a += 1
 
-            print("Array:", b)
-
             start = round(time.time(), 1)
-
-        if ((end - start) == 5):
-            # 정확도 프레임 수를 총 프레임 수를 나누어 백분률로 표기
-            print(int(((awesome_frame + great_frame + good_frame + ok_frame)/frame_counter) * 100))
 
     except:
         print("비교 모듈이 종료됩니다")

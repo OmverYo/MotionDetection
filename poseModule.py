@@ -26,13 +26,14 @@ class poseDetector():
     # 보여지는 이미지를 인식하고 신체의 각 부위를 33개의 점으로 지정하여 행렬로 저장해줍니다
     def findPosition(self, img, draw = True):
         self.lmList = []
+        self.topList = []
         if self.results.pose_landmarks:
             for id, lm in enumerate(self.results.pose_landmarks.landmark):
-                if id not in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]:
+                if id in [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]:
                     h, w, c = img.shape
                     # print(id, lm)
                     cx, cy = int(lm.x * w), int(lm.y * h)
                     self.lmList.append([id, cx, cy])
-                    if draw:
-                        cv2.circle(img, (cx, cy), 5, (255, 0, 0), cv2.FILLED)
+                    # if draw:
+                    #     cv2.circle(img, (cx, cy), 5, (255, 0, 0), cv2.FILLED)
         return self.lmList

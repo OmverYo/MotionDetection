@@ -2,7 +2,6 @@ import cv2, time
 import poseModule as pm
 from scipy.spatial.distance import cosine
 from fastdtw import fastdtw
-import random
 
 # 두 모델 또는 영상을 비교하는 함수입니다
 def compare_positions(benchmark_video, user_video):
@@ -26,9 +25,6 @@ def compare_positions(benchmark_video, user_video):
 
 	# 영상의 시간 시간을 측정합니다
 	start = int(time.time())
-
-	# 게임의 랜덤 아이디를 생성합니다
-	play_id = random.randrange(1, 100)
 
 	# 정확도 계산이 끝난 시기를 저장할 변수
 	capture_time = 0
@@ -80,8 +76,8 @@ def compare_positions(benchmark_video, user_video):
 				# 두 이미지를 비교하여 다른 값을 표시합니다
 				cv2.putText(image_1, 'Error: {}%'.format(str(round(100*(float(error)),2))), (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
 
-				# 정확도가 90% 가 넘을 경우 정확한 동작으로 표시합니다
-				if error < 0.15:
+				# 정확도가 50% 가 넘을 경우 정확한 동작으로 표시합니다
+				if error < 0.5:
 					cv2.putText(image_1, "CORRECT STEPS", (40, 440), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 					# 정확도를 측정 후 정확도 프레임 수를 1개 올립니다
 					correct_frames += 1
@@ -157,7 +153,7 @@ def compare_positions(benchmark_video, user_video):
 						# 영상이 끝난 시점 기준의 캡쳐 시간을 측정합니다
 						capture_time += (end - start)
 						# 정확도 리스트에 플레이 아이디, 캡쳐 시간, 정확도를 추가하여 넣습니다
-						accuracyList.append((play_id, capture_time, int(round(100*correct_frames/frame_counter, 2))))
+						accuracyList.append((capture_time, int(round(100*correct_frames/frame_counter, 2))))
 						break
 			else:
 				break
