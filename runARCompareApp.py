@@ -1,5 +1,7 @@
 from flask import Flask, render_template, Response
 import cv2, time
+import numpy as np
+import mediapipe as mp
 import poseModule as pm
 from scipy.spatial.distance import cosine
 from fastdtw import fastdtw
@@ -8,6 +10,9 @@ import mysql.connector
 app = Flask(__name__)
 
 def generate_frames():
+    mp_selfie_segmentation = mp.solutions.selfie_segmentation
+    selfie_segmentation = mp_selfie_segmentation.SelfieSegmentation(model_selection = 0)
+
     mydb = mysql.connector.connect(host = "localhost", user = "root", password = "0000", database = "metaports")
     mycursor = mydb.cursor()
 
@@ -25,6 +30,8 @@ def generate_frames():
 
     # 각 영상 별로 모션을 인식할 함수를 불러옵니다
     detector = pm.poseDetector()
+
+    isVR = True
 
     # 정확도 좌표 값을 저장할 변수
     accuracyList = []
@@ -49,14 +56,12 @@ def generate_frames():
     while a < b:
         accuracyList.append(myresult[a])
         a += 1
-
-    print("Ready")
-
+    
     start = round(time.time(), 1)
     end = round(time.time(), 1)
 
     # 대상으로 쓰일 영상이나 유저의 캠이 정상적으로 켜진 경우
-    while (user_cam.isOpened()):
+    while user_cam.isOpened():
         try:
             ret_val, image_1 = user_cam.read()
 
@@ -123,22 +128,45 @@ def generate_frames():
 
                 start = round(time.time(), 1)
 
+            if isVR == True:
+                results = selfie_segmentation.process(image_1)
+
+                condition = np.stack((results.segmentation_mask,) * 3, axis = -1) > 0.15
+
+                bg_image = cv2.imread("picture1233.jpg")
+
+                output_image = np.where(condition, image_1, bg_image)
+
+                ret, buffer = cv2.imencode('.jpg', output_image)
+
+                output_image = buffer.tobytes()
+                yield (b'--image_1\r\n'
+                    b'Content-Type: image_1/jpeg\r\n\r\n' + output_image + b'\r\n')
             
+            if isVR == False:
+                ret_val, buffer = cv2.imencode('.jpg', image_1)
 
-            ret_val, buffer = cv2.imencode('.jpg', image_1)
+                image_1 = buffer.tobytes()
 
-            
-
-            image_1 = buffer.tobytes()
-
-            yield (b'--image\r\n'
-                b'Content-Type: image/jpeg\r\n\r\n' + image_1 + b'\r\n')
+                yield (b'--image\r\n'
+                    b'Content-Type: image/jpeg\r\n\r\n' + image_1 + b'\r\n')
 
         except:
             print("비교 모듈이 종료됩니다")
             break
 
     user_cam.release()
+
+    total = 0
+
+    for x in range(0, len(totalAccuracyList)):
+        total = total + totalAccuracyList[x][1]
+
+    total = int(total / len(totalAccuracyList))
+
+    sql = "INSERT INTO player_data (total, perfect_frame, awesome_frame, good_frame, ok_frame, bad_frame) VALUES (%s, %s, %s, %s, %s, %s)"
+    mycursor.execute(sql, (total, perfect_frame, awesome_frame, good_frame, ok_frame, bad_frame))
+    mydb.commit()
 
 @app.route('/')
 def index():
@@ -149,4 +177,9 @@ def video_feed():
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=image')
 
 if __name__ == '__main__':
+    mydb = mysql.connector.connect(host = "localhost", user = "root", password = "0000", database = "metaports")
+
+    if not mydb:
+        exit()
+    
     app.run(debug=True)
