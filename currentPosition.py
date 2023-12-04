@@ -1,9 +1,13 @@
 import cv2
 
-cap = cv2.VideoCapture("easyDance.mp4")
+cap = cv2.VideoCapture("BX_Dance01_Full_FV_A113C176.mp4")
 fps = cap.get(cv2.CAP_PROP_FPS)
+total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+rest = 0
 print(fps)
+print(total_frames)
 timestamps = [cap.get(cv2.CAP_PROP_POS_MSEC)]
+timestampsint = [cap.get(cv2.CAP_PROP_POS_MSEC)]
 
 if not cap.isOpened():
     print("Cannot open camera")
@@ -22,8 +26,10 @@ while True:
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     timestamps = [cap.get(cv2.CAP_PROP_POS_MSEC)]
+    timestampsint = [int(cap.get(cv2.CAP_PROP_POS_MSEC))]
 
-    print(timestamps)
+    if timestampsint[-1] % 1001 == 0:
+        print(timestamps)
 
     gray = cv2.resize(frame, (1366, 768))
 

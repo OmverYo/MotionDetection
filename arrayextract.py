@@ -7,7 +7,7 @@ mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
 
-cap = cv2.VideoCapture("easyDance.mp4")
+cap = cv2.VideoCapture("BX_Dance01_Full_FV_A113C176.mp4")
 
 fps = round(cap.get(cv2.CAP_PROP_FPS), 0)
 total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
@@ -25,9 +25,9 @@ with mp_pose.Pose(model_complexity = 1, min_detection_confidence = 0.5, min_trac
 
         results = pose.process(image)
 
-        timestamps = [cap.get(cv2.CAP_PROP_POS_MSEC)]
+        timestamps = [int(cap.get(cv2.CAP_PROP_POS_MSEC))]
 
-        if timestamps[-1] % 1000 == 0:
+        if timestamps[-1] % 1001 == 0:
             print(timestamps)
             for id, lm in enumerate(results.pose_landmarks.landmark):
                 if id not in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]:
@@ -36,11 +36,6 @@ with mp_pose.Pose(model_complexity = 1, min_detection_confidence = 0.5, min_trac
                     # print(id, lm)
                     cx, cy = int(lm.x * w), int(lm.y * h)
                     lmList.append((id, cx, cy))
-
-        image = cv2.resize(image, (1366, 768))
-        
-        cv2.imshow("MediaPipe Pose", image)
-        cv2.moveWindow("MediaPipe Pose", 0, 0)
 
         if cv2.waitKey(5) & 0xFF == 27:
             break

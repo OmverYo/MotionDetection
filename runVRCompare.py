@@ -62,7 +62,6 @@ with mp_selfie_segmentation.SelfieSegmentation(model_selection = 0) as selfie_se
 
         image.flags.writeable = True
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-        #mp_drawing.draw_landmarks(image, results1.pose_landmarks, mp_pose.POSE_CONNECTIONS, landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style())
 
         lmList = []
 
@@ -72,7 +71,6 @@ with mp_selfie_segmentation.SelfieSegmentation(model_selection = 0) as selfie_se
             for id, lm in enumerate(results1.pose_landmarks.landmark):
                 if id not in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]:
                     h, w, c = image.shape
-                    # print(id, lm)
                     cx, cy = int(lm.x * w), int(lm.y * h)
                     lmList.append([id, cx, cy])
 

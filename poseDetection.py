@@ -2,7 +2,11 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import time
-import json
+import os
+
+current_working_directory = os.getcwd()
+
+image_path = current_working_directory + "/picture123.jpg"
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -11,6 +15,8 @@ mp_pose = mp.solutions.pose
 
 # 배경화면의 색상을 지정합니다
 BG_COLOR = (0, 255, 0) # GREEN
+
+bg_image = cv2.imread("C:/Users/pc1/Desktop/MotionDetection/picture1233.jpg")
 
 imageList = []
 
@@ -40,7 +46,7 @@ with mp_selfie_segmentation.SelfieSegmentation(model_selection = 1) as selfie_se
 
         # 사람 뒤에 있는 배경을 지워주는 작업
         condition = np.stack((results.segmentation_mask,) * 3, axis = -1) > 0.15
-
+        
         # 만약 지정된 배경화면이 없을 경우
         if bg_image is None:
             bg_image = np.zeros(image.shape, dtype = np.uint8)

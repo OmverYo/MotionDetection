@@ -2,7 +2,6 @@ import cv2, time
 import poseModule as pm
 from scipy.spatial.distance import cosine
 from fastdtw import fastdtw
-import json
 import mysql.connector
 
 mydb = mysql.connector.connect(host = "localhost", user = "root", password = "0000", database = "metaports")
@@ -21,18 +20,19 @@ myresult = mycursor.fetchall()
 user_cam = cv2.VideoCapture(0)
 
 # 각 영상 별로 모션을 인식할 함수를 불러옵니다
-detector_1 = pm.poseDetector()
+detector = pm.poseDetector()
 
-# 정확도 값을 저장할 변수
+# 정확도 좌표 값을 저장할 변수
 accuracyList = []
 
-
+# 정확도 최종 점수 보관 리스트
+totalAccuracyList = []
 
 # FPS를 0으로 설정합니다
 fps_time = 0
 
 # 현재 프레임 수를 기록 합니다
-frame_counter = 0
+capture_time = 0
 
 # 모션 인식 중 해당 정확도의 동작일 경우 해당 프레임 수를 저장합니다
 perfect_frame = 0
@@ -49,6 +49,10 @@ while a < b:
     accuracyList.append(myresult[a])
     a += 1
 
+print("Ready")
+
+time.sleep(3)
+
 start = round(time.time(), 1)
 end = round(time.time(), 1)
 
@@ -58,14 +62,11 @@ while (user_cam.isOpened()):
         ret_val, image_1 = user_cam.read()
 
         # 이미지의 위치를 인식합니다
-        image_1 = detector_1.findPose(image_1)
-        lmList_user = detector_1.findPosition(image_1)
+        image_1 = detector.findPose(image_1)
+        lmList_user = detector.findPosition(image_1)
 
         # fastdtw의 모듈로 두 좌표를 코사인 유사도로 비교합니다
         error, _ = fastdtw(lmList_user, accuracyList, dist = cosine)
-
-        # 현재 프로그램의 실행되는 프레임 수를 카운트 합니다
-        frame_counter += 1
 
         end = round(time.time(), 1)
 
@@ -90,13 +91,24 @@ while (user_cam.isOpened()):
             elif error > 0.5:
                 bad_frame += 1
             
+            capture_time += 1
+
+            print("")
             print("perfect", perfect_frame)
             print("awesome", awesome_frame)
             print("good", good_frame)
             print("ok", ok_frame)
             print("bad", bad_frame)
 
-            print("Average", int(((perfect_frame + awesome_frame + good_frame + ok_frame)/frame_counter) * 100))
+            if error > 1:
+                error = 1
+                totalAccuracyList.append((capture_time, int((1 - error) * 100)))
+
+            print("Total", totalAccuracyList[-1])
+
+            print("correct", int(((perfect_frame + awesome_frame + good_frame + ok_frame)/capture_time) * 100))
+
+            print(capture_time)
 
             b += 22
             accuracyList = []
@@ -105,11 +117,28 @@ while (user_cam.isOpened()):
                 accuracyList.append(myresult[a])
                 a += 1
 
+            sql = "INSERT INTO mt_training_result (capture_time, accuracy) VALUES (%s, %s)"
+            mycursor.execute(sql, totalAccuracyList[-1])
+            mydb.commit()
+
             start = round(time.time(), 1)
 
     except:
         print("비교 모듈이 종료됩니다")
         break
+
+# def calculateTotal():
+#     y = 0
+#     for x in totalAccuracyList:
+#         y += x
+
+#     return y / len(totalAccuracyList)
+
+# print(calculateTotal())
+
+# sql = "INSERT INTO player_data (totaly) VALUES (%s)"
+# mycursor.execute(int(calculateTotal()))
+# mydb.commit()
 
 # 영상 종료 후 모든 창을 종료해줍니다
 user_cam.release()

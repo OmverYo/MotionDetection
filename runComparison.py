@@ -8,7 +8,7 @@ mydb = mysql.connector.connect(host = "localhost", user = "root", password = "00
 mycursor = mydb.cursor()
 
 # 데이터 베이스에서 가져올 정보를 입력합니다
-sql = "SELECT video_id FROM model_name WHERE video_id = 'easyDance.mp4'"
+sql = "SELECT video_id FROM model_name WHERE video_id = 'BX_Dance01_Full_FV_A113C176.mp4'"
 
 # SQL 코드를 실행 합니다
 mycursor.execute(sql)

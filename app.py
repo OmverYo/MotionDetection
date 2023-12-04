@@ -2,6 +2,9 @@ from flask import Flask, render_template, Response
 import cv2
 import mediapipe as mp
 import numpy as np
+import poseModule as pm
+from scipy.spatial.distance import cosine
+from fastdtw import fastdtw
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -27,7 +30,7 @@ def generate_frames():
                 results1 = pose.process(image)
 
                 condition = np.stack((results.segmentation_mask,) * 3, axis = -1) > 0.15
-                
+
                 # 만약 지정된 배경화면이 없을 경우
                 if bg_image is None:
                     bg_image = np.zeros(image.shape, dtype = np.uint8)
