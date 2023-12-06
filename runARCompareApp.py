@@ -23,15 +23,13 @@ def generate_frames():
     mycursor.execute(sql)
 
     # 실행한 SQL 코드의 출력 결과를 불러옵니다
-    myresult = mycursor.fetchall()
+    myList = mycursor.fetchall()
 
     # 유저 캠은 플레이어의 모습이 보일 영상
     user_cam = cv2.VideoCapture(0)
 
     # 각 영상 별로 모션을 인식할 함수를 불러옵니다
     detector = pm.poseDetector()
-
-    isVR = True
 
     # 정확도 좌표 값을 저장할 변수
     accuracyList = []
@@ -54,9 +52,34 @@ def generate_frames():
     b = 22
 
     while a < b:
-        accuracyList.append(myresult[a])
+        accuracyList.append(myList[a])
         a += 1
     
+    is_vr = False
+
+     # 데이터 베이스에서 가져올 정보를 입력합니다
+    sql = "SELECT * FROM background"
+
+    # SQL 코드를 실행 합니다
+    mycursor.execute(sql)
+
+    # 실행한 SQL 코드의 출력 결과를 불러옵니다
+    myresult = mycursor.fetchall()[-1][1]
+
+    if myresult == 1:
+        is_vr = True
+
+    else:
+        is_vr = False
+
+    sql = "TRUNCATE TABLE background"
+    mycursor.execute(sql)
+    mydb.commit()
+
+    sql = "INSERT INTO program_running (is_running) VALUES (1)"
+    mycursor.execute(sql)
+    mydb.commit()
+
     start = round(time.time(), 1)
     end = round(time.time(), 1)
 
@@ -117,56 +140,73 @@ def generate_frames():
 
                 b += 22
                 accuracyList = []
-
+                
                 while a < b:
-                    accuracyList.append(myresult[a])
+                    accuracyList.append(myList[a])
                     a += 1
                 
                 sql = "INSERT INTO mt_training_result (capture_time, accuracy) VALUES (%s, %s)"
                 mycursor.execute(sql, totalAccuracyList[-1])
                 mydb.commit()
 
+                # # isRunning 겟 한번
+                # # 데이터 베이스에서 가져올 정보를 입력합니다
+                # sql = "SELECT * FROM program_running"
+                # # SQL 코드를 실행 합니다
+                # mycursor.execute(sql)
+                # # 실행한 SQL 코드의 출력 결과를 불러옵니다
+                # myresult = mycursor.fetchall()[-1][1]
+                
+                # if myresult == 0:
+                #     break
+
                 start = round(time.time(), 1)
 
-            if isVR == True:
+            if is_vr == True:
+                
                 results = selfie_segmentation.process(image_1)
-
+                
                 condition = np.stack((results.segmentation_mask,) * 3, axis = -1) > 0.15
-
-                bg_image = cv2.imread("picture1233.jpg")
-
+                
+                bg_image = cv2.imread("C:/Users/pc1/Documents/GitHub/MetaPorts/Python/picture1233.jpg")
+                
                 output_image = np.where(condition, image_1, bg_image)
-
+                
                 ret, buffer = cv2.imencode('.jpg', output_image)
-
+                
                 output_image = buffer.tobytes()
                 yield (b'--image_1\r\n'
                     b'Content-Type: image_1/jpeg\r\n\r\n' + output_image + b'\r\n')
             
-            if isVR == False:
+            else:
                 ret_val, buffer = cv2.imencode('.jpg', image_1)
 
                 image_1 = buffer.tobytes()
 
                 yield (b'--image\r\n'
                     b'Content-Type: image/jpeg\r\n\r\n' + image_1 + b'\r\n')
-
         except:
             print("비교 모듈이 종료됩니다")
+
+            sql = "TRUNCATE TABLE program_running"
+            mycursor.execute(sql)
+            mydb.commit()
+
             break
 
     user_cam.release()
 
-    total = 0
+    if len(totalAccuracyList) != 0:
+        total = 0
 
-    for x in range(0, len(totalAccuracyList)):
-        total = total + totalAccuracyList[x][1]
+        for x in range(0, len(totalAccuracyList)):
+            total = total + totalAccuracyList[x][1]
 
-    total = int(total / len(totalAccuracyList))
+        total = int(total / len(totalAccuracyList))
 
-    sql = "INSERT INTO player_data (total, perfect_frame, awesome_frame, good_frame, ok_frame, bad_frame) VALUES (%s, %s, %s, %s, %s, %s)"
-    mycursor.execute(sql, (total, perfect_frame, awesome_frame, good_frame, ok_frame, bad_frame))
-    mydb.commit()
+        sql = "INSERT INTO player_data (total, perfect_frame, awesome_frame, good_frame, ok_frame, bad_frame) VALUES (%s, %s, %s, %s, %s, %s)"
+        mycursor.execute(sql, (total, perfect_frame, awesome_frame, good_frame, ok_frame, bad_frame))
+        mydb.commit()
 
 @app.route('/')
 def index():
