@@ -1,64 +1,45 @@
-import mysql.connector
+import os
+import cv2
+import mediapipe as mp
+import json
 
-mydb = mysql.connector.connect(host = "localhost", user = "root", password = "0000", database = "metaports")
-mycursor = mydb.cursor()
+mp_pose = mp.solutions.pose
+pose = mp_pose.Pose(model_complexity = 0, min_detection_confidence = 0.5, min_tracking_confidence = 0.5)
 
-# perfect_frame = 1
-# awesome_frame = 2
-# good_frame = 3
-# ok_frame = 4
-# bad_frame = 5
+cwd = os.getcwd().replace("\\", "/") + "/"
 
-# totalAccuracyList = []
+onlyfiles = [f for f in os.listdir(cwd) if os.path.isfile(os.path.join(cwd, f))]
 
-# i = 0
-# j = 0
+onlyfiles.remove("print.py")
 
-# while i < 10:
-#     totalAccuracyList.append([i, j])
-#     i += 1
-#     j += 10
+for x in onlyfiles:
+    cap = cv2.VideoCapture(cwd + x)
 
-# total = 0
+    fps = round(cap.get(cv2.CAP_PROP_FPS), 0)
+    total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+    timestamps = [cap.get(cv2.CAP_PROP_POS_MSEC)]
 
-# for x in range(0, len(totalAccuracyList)):
-#     total = total + totalAccuracyList[x][1]
+    lmList = []
 
-# total = int(total / len(totalAccuracyList))
+    while cap.isOpened():
+        success, image = cap.read()
 
-# print(total)
+        results = pose.process(image)
 
-# sql = "INSERT INTO player_data (total, perfect_frame, awesome_frame, good_frame, ok_frame, bad_frame) VALUES (%s, %s, %s, %s, %s, %s)"
-# mycursor.execute(sql, (total, perfect_frame, awesome_frame, good_frame, ok_frame, bad_frame))
+        timestamps = [int(cap.get(cv2.CAP_PROP_POS_MSEC))]
 
-sql = "INSERT INTO background (isVR) VALUES (1)"
-mycursor.execute(sql)
-mydb.commit()
+        if timestamps[-1] % 1001 == 0:
+            print(fps, total_frames, timestamps)
+            for id, lm in enumerate(results.pose_landmarks.landmark):
+                if id not in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]:
+                    h, w, c = image.shape
+                    # print(id, lm.x, lm.y)
+                    # print(id, lm)
+                    cx, cy = int(lm.x * w), int(lm.y * h)
+                    lmList.append((id, cx, cy))
 
-sql = "SELECT * FROM background"
-# SQL 코드를 실행 합니다
-mycursor.execute(sql)
-# 실행한 SQL 코드의 출력 결과를 불러옵니다
-myresult = mycursor.fetchall()[0][1]
+    with open(x + ".json", 'w') as f:
+        json.dump(lmList, f)
 
-if myresult == 1:
-    isVR = True
-
-else:
-    isVR = False
-
-print(isVR)
-
-sql = "INSERT INTO program_running (isRunning) VALUES (1)"
-mycursor.execute(sql)
-mydb.commit()
-
-sql = "SELECT * FROM program_running"
-# SQL 코드를 실행 합니다
-mycursor.execute(sql)
-# 실행한 SQL 코드의 출력 결과를 불러옵니다
-myresult = mycursor.fetchall()[0][1]
-
-print(myresult)
-
-# mydb.commit()
+    cap.release()
+    cv2.destroyAllWindows()
