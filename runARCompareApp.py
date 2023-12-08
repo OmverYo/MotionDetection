@@ -6,10 +6,13 @@ import poseModule as pm
 from scipy.spatial.distance import cosine
 from fastdtw import fastdtw
 import mysql.connector
+import pathlib
 
 app = Flask(__name__)
 
 def generate_frames():
+    path = str(pathlib.Path(__file__).parent.resolve()).replace("\\", "/") + "/"
+
     mp_selfie_segmentation = mp.solutions.selfie_segmentation
     selfie_segmentation = mp_selfie_segmentation.SelfieSegmentation(model_selection = 0)
 
@@ -168,7 +171,7 @@ def generate_frames():
                 
                 condition = np.stack((results.segmentation_mask,) * 3, axis = -1) > 0.15
                 
-                bg_image = cv2.imread("C:/Users/pc1/Documents/GitHub/MetaPorts/Python/picture1233.jpg")
+                bg_image = cv2.imread(f"{path}picture1233.jpg")
                 
                 output_image = np.where(condition, image_1, bg_image)
                 
