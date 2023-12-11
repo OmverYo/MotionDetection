@@ -6,7 +6,7 @@ mp_selfie_segmentation = mp.solutions.selfie_segmentation
 
 # For webcam input:
 BG_COLOR = (192, 192, 192) # gray
-cap = cv2.VideoCapture("TK_Motion01_C_FV_m_C0553.mp4")
+cap = cv2.VideoCapture("BX_Dance01_Full_FV_A113C176.mp4")
 with mp_selfie_segmentation.SelfieSegmentation(
     model_selection=1) as selfie_segmentation:
   bg_image = None
