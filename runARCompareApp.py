@@ -1,5 +1,5 @@
 from flask import Flask, render_template, Response
-import cv2, time
+import cv2, time, json
 import numpy as np
 import mediapipe as mp
 import poseModule as pm
@@ -11,70 +11,68 @@ import pathlib
 app = Flask(__name__)
 
 def generate_frames():
+    # 현재 파일의 경로
     path = str(pathlib.Path(__file__).parent.resolve()).replace("\\", "/") + "/"
 
     mp_selfie_segmentation = mp.solutions.selfie_segmentation
     selfie_segmentation = mp_selfie_segmentation.SelfieSegmentation(model_selection = 0)
 
+    # MySQL DB 접속
     mydb = mysql.connector.connect(host = "localhost", user = "root", password = "0000", database = "metaports")
     mycursor = mydb.cursor()
 
-    # 데이터 베이스에서 가져올 정보를 입력합니다
-    sql = "SELECT * FROM coordinates"
-
-    # SQL 코드를 실행 합니다
-    mycursor.execute(sql)
-
-    # 실행한 SQL 코드의 출력 결과를 불러옵니다
-    myList = mycursor.fetchall()
-
-    # 유저 캠은 플레이어의 모습이 보일 영상
+    # 이용자의 캠
     user_cam = cv2.VideoCapture(0)
 
-    # 각 영상 별로 모션을 인식할 함수를 불러옵니다
+    # 영상을 인식할 모듈
     detector = pm.poseDetector()
-
-    # 정확도 좌표 값을 저장할 변수
-    accuracyList = []
 
     # 정확도 최종 점수 보관 리스트
     totalAccuracyList = []
 
-    # 현재 프레임 수를 기록 합니다
+    # 현재 프레임 수를 기록
     capture_time = 0
 
-    # 모션 인식 중 해당 정확도의 동작일 경우 해당 프레임 수를 저장합니다
+    # 모션 인식 중 해당 정확도의 프레임 수를 저장
     perfect_frame = 0
     awesome_frame = 0
     good_frame = 0
     ok_frame = 0
     bad_frame = 0
-
-    # 좌표 값을 22개 마다 불러옵니다
-    a = 0
-    b = 22
-
-    while a < b:
-        accuracyList.append(myList[a])
-        a += 1
     
     is_vr = False
 
-     # 데이터 베이스에서 가져올 정보를 입력합니다
+    # 데이터 베이스에서 가져올 정보를 입력합니다
     sql = "SELECT * FROM background"
 
     # SQL 코드를 실행 합니다
     mycursor.execute(sql)
 
     # 실행한 SQL 코드의 출력 결과를 불러옵니다
-    myresult = mycursor.fetchall()[-1][1]
+    myVR = mycursor.fetchall()[-1][1]
+    bg_name = mycursor.fetchall()[-1][2]
+    coord_name = mycursor.fetchall()[-1][3]
 
-    if myresult == 1:
+    if myVR == 1:
         is_vr = True
 
     else:
         is_vr = False
+    
+    with open(f"taekwondo_action/{coord_name}") as json_file:
+        json_data = json.load(json_file)
 
+    # 정확도 좌표 값을 저장할 변수
+    accuracyList = []
+
+    # 좌표 값을 22개 마다 불러옵니다
+    a = 0
+    b = 22
+
+    while a < b:
+        accuracyList.append(json_data[a])
+        a += 1
+    
     sql = "TRUNCATE TABLE background"
     mycursor.execute(sql)
     mydb.commit()
@@ -145,7 +143,7 @@ def generate_frames():
                 accuracyList = []
                 
                 while a < b:
-                    accuracyList.append(myList[a])
+                    accuracyList.append(json_data[a])
                     a += 1
                 
                 sql = "INSERT INTO mt_training_result (capture_time, accuracy) VALUES (%s, %s)"
@@ -158,9 +156,9 @@ def generate_frames():
                 # # SQL 코드를 실행 합니다
                 # mycursor.execute(sql)
                 # # 실행한 SQL 코드의 출력 결과를 불러옵니다
-                # myresult = mycursor.fetchall()[-1][1]
+                # myVR = mycursor.fetchall()[-1][1]
                 
-                # if myresult == 0:
+                # if myVR == 0:
                 #     break
 
                 start = round(time.time(), 1)
@@ -171,13 +169,14 @@ def generate_frames():
                 
                 condition = np.stack((results.segmentation_mask,) * 3, axis = -1) > 0.15
                 
-                bg_image = cv2.imread(f"{path}picture1233.jpg")
+                bg_image = cv2.imread(f"{path}{bg_name}")
                 
                 output_image = np.where(condition, image_1, bg_image)
                 
                 ret, buffer = cv2.imencode('.jpg', output_image)
                 
                 output_image = buffer.tobytes()
+                
                 yield (b'--image_1\r\n'
                     b'Content-Type: image_1/jpeg\r\n\r\n' + output_image + b'\r\n')
             

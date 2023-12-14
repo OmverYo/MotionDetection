@@ -5,7 +5,7 @@ import json
 mp_pose = mp.solutions.pose
 pose = mp_pose.Pose(model_complexity = 0, min_detection_confidence = 0.5, min_tracking_confidence = 0.5)
 
-cap = cv2.VideoCapture("BX_Dance01_Full_FV_A113C176.mp4")
+cap = cv2.VideoCapture("cv-TK_Motion01_M_m_01_Final.mp4")
 
 fps = round(cap.get(cv2.CAP_PROP_FPS), 0)
 total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)

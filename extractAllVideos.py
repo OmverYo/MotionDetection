@@ -10,7 +10,7 @@ cwd = os.getcwd().replace("\\", "/") + "/"
 
 onlyfiles = [f for f in os.listdir(cwd) if os.path.isfile(os.path.join(cwd, f))]
 
-onlyfiles.remove("print.py")
+onlyfiles.remove("extractAllVideos.py")
 onlyfiles.remove("desktop.ini")
 
 for x in onlyfiles:
