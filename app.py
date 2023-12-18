@@ -8,6 +8,7 @@ mp_selfie_segmentation = mp.solutions.selfie_segmentation
 segment = mp_selfie_segmentation.SelfieSegmentation
 
 app = Flask(__name__)
+
 camera = cv2.VideoCapture(0)
 
 def generate_frames():
