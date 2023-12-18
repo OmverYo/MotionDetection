@@ -2,7 +2,6 @@ from flask import Flask, render_template, Response
 import cv2
 import mediapipe as mp
 import numpy as np
-import matplotlib.pyplot as plt
 
 mp_pose = mp.solutions.pose
 mp_selfie_segmentation = mp.solutions.selfie_segmentation
