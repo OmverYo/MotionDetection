@@ -104,6 +104,7 @@ class HandDataRestController(val HandDataRepo: HandDataRepository)
 	@PostMapping("HandData")
 	fun SaveHandData(@RequestBody HandData: hand)
 	{
+		HandData.hand_id = 1
 		HandDataRepo.save(HandData)
 	}
 }
@@ -146,8 +147,8 @@ class program_running(
 
 @Entity
 class hand(
-	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-	var hand_id: Int = 0,
+	@Id
+	var hand_id: Int = 1,
 	var rx: Int = 0,
 	var ry: Int = 0,
 	var lx: Int = 0,

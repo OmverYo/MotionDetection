@@ -2,6 +2,8 @@ from flask import Flask, render_template, Response
 import cv2
 import mediapipe as mp
 import numpy as np
+import requests
+import time
 
 mp_pose = mp.solutions.pose
 mp_selfie_segmentation = mp.solutions.selfie_segmentation
@@ -17,7 +19,7 @@ def generate_frames():
         BG_COLOR = (0, 255, 0) # GREEN
 
         bg_image = None
-        
+
         while True:
             success, image = camera.read()
             if not success:
