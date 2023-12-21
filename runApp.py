@@ -10,36 +10,34 @@ import pathlib
 
 app = Flask(__name__)
 
-def generate_frames():
-    # 현재 파일의 경로
+def gameRun():
     path = str(pathlib.Path(__file__).parent.resolve()).replace("\\", "/") + "/"
 
     mp_selfie_segmentation = mp.solutions.selfie_segmentation
     selfie_segmentation = mp_selfie_segmentation.SelfieSegmentation(model_selection = 0)
 
-    # MySQL DB 접속
     mydb = mysql.connector.connect(host = "localhost", user = "root", password = "0000", database = "metaports")
     mycursor = mydb.cursor()
 
-    # 이용자의 캠
+    # 유저 캠은 플레이어의 모습이 보일 영상
     user_cam = cv2.VideoCapture(0)
 
-    # 영상을 인식할 모듈
+    # 각 영상 별로 모션을 인식할 함수를 불러옵니다
     detector = pm.poseDetector()
 
     # 정확도 최종 점수 보관 리스트
     totalAccuracyList = []
 
-    # 현재 프레임 수를 기록
+    # 현재 프레임 수를 기록 합니다
     capture_time = 0
 
-    # 모션 인식 중 해당 정확도의 프레임 수를 저장
+    # 모션 인식 중 해당 정확도의 동작일 경우 해당 프레임 수를 저장합니다
     perfect_frame = 0
     awesome_frame = 0
     good_frame = 0
     ok_frame = 0
     bad_frame = 0
-    
+
     is_vr = False
 
     # 데이터 베이스에서 가져올 정보를 입력합니다
@@ -48,10 +46,12 @@ def generate_frames():
     # SQL 코드를 실행 합니다
     mycursor.execute(sql)
 
+    result = mycursor.fetchall()
+
     # 실행한 SQL 코드의 출력 결과를 불러옵니다
-    myVR = mycursor.fetchall()[-1][1]
-    bg_name = mycursor.fetchall()[-1][2]
-    coord_name = mycursor.fetchall()[-1][3]
+    myVR = result[-1][1]
+    bg_name = result[-1][2]
+    coord_name = result[-1][3]
 
     if myVR == 1:
         is_vr = True
@@ -59,7 +59,7 @@ def generate_frames():
     else:
         is_vr = False
     
-    with open(f"taekwondo_action/{coord_name}") as json_file:
+    with open(f"{path}taekwondo_action/{coord_name}.json") as json_file:
         json_data = json.load(json_file)
 
     # 정확도 좌표 값을 저장할 변수
@@ -92,6 +92,11 @@ def generate_frames():
             # 이미지의 위치를 인식합니다
             image_1 = detector.findPose(image_1)
             lmList_user = detector.findPosition(image_1)
+            handList_user = detector.findHand(image_1)
+
+            sql = "UPDATE hand SET rx = %s, ry = %s, lx = %s, ly = %s WHERE hand_id = 1"
+            mycursor.execute(sql, (handList_user[1][1], handList_user[1][2], handList_user[0][1], handList_user[0][2]))
+            mydb.commit()
 
             # fastdtw의 모듈로 두 좌표를 코사인 유사도로 비교합니다
             error, _ = fastdtw(lmList_user, accuracyList, dist = cosine)
@@ -210,13 +215,50 @@ def generate_frames():
         mycursor.execute(sql, (total, perfect_frame, awesome_frame, good_frame, ok_frame, bad_frame))
         mydb.commit()
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+def mainScreen():
+    user_cam = cv2.VideoCapture(0)
+    detector = pm.poseDetector()
+
+    mydb = mysql.connector.connect(host = "localhost", user = "root", password = "0000", database = "metaports")
+    mycursor = mydb.cursor()
+
+    while user_cam.isOpened():
+        try:
+            ret_val, image_1 = user_cam.read()
+
+            # 이미지의 위치를 인식합니다
+            image_1 = detector.findPose(image_1)
+            handList_user = detector.findHand(image_1)
+
+            sql = "UPDATE hand SET rx = %s, ry = %s, lx = %s, ly = %s WHERE hand_id = 1"
+            mycursor.execute(sql, (handList_user[1][1], handList_user[1][2], handList_user[0][1], handList_user[0][2]))
+            mydb.commit()
+
+            ret_val, buffer = cv2.imencode('.jpg', image_1)
+
+            image_1 = buffer.tobytes()
+
+            yield (b'--image\r\n'
+                b'Content-Type: image/jpeg\r\n\r\n' + image_1 + b'\r\n')
+        
+        except:
+            pass
+
+@app.route('/gameRun')
+def game():
+    return render_template('gameRun.html')
+
+@app.route('/mainScreen')
+def main():
+    return render_template('mainScreen.html')
 
 @app.route('/video_feed')
 def video_feed():
-    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=image')
+    return Response(gameRun(), mimetype='multipart/x-mixed-replace; boundary=image')
+
+@app.route('/video_main')
+def video_main():
+    return Response(mainScreen(), mimetype='multipart/x-mixed-replace; boundary=image')
 
 if __name__ == '__main__':
     mydb = mysql.connector.connect(host = "localhost", user = "root", password = "0000", database = "metaports")
