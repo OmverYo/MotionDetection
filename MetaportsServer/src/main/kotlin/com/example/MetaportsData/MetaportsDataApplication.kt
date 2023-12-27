@@ -18,6 +18,11 @@ interface GameDataRepository: JpaRepository<mt_training_result, Int>
 
 }
 
+interface BasicDataRepository: JpaRepository<basic_data, Int>
+{
+
+}
+
 interface PlayerDataRepository: JpaRepository<player_data, Int>
 {
 
@@ -49,6 +54,20 @@ class GameDataRestController(val GameDataRepo: GameDataRepository)
 	fun SaveGameData(@RequestBody GameData: mt_training_result)
 	{
 		GameDataRepo.save(GameData)
+	}
+}
+
+@RestController
+@RequestMapping("api")
+class BasicDataRestController(val BasicDataRepo: BasicDataRepository)
+{
+	@GetMapping("BasicData")
+	fun GetAll() = BasicDataRepo.findAll().last()
+
+	@PostMapping("BasicData")
+	fun SaveGameData(@RequestBody BasicData: basic_data)
+	{
+		BasicDataRepo.save(BasicData)
 	}
 }
 
@@ -115,6 +134,13 @@ class mt_training_result(
 	var play_id: Int = 0,
 	var capture_time: Int = 0,
 	var accuracy: Int = 0
+)
+
+@Entity
+class basic_data(
+	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+	var play_id: Int = 0,
+	var reaction_time: Float = 0.0F
 )
 
 @Entity
