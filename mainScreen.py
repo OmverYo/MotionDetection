@@ -29,3 +29,5 @@ def mainScreen():
         
         except:
             pass
+
+    user_cam.release()

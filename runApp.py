@@ -1,6 +1,6 @@
 from flask import Flask, render_template, Response
 import mysql.connector
-import mainScreen, gameRun, basicRun
+import mainScreen, gameRun, basicRun, onAir, kneePunch, balanceTest, squatJump
 
 app = Flask(__name__)
 
@@ -11,6 +11,22 @@ def game():
 @app.route('/basicRun')
 def basic():
     return render_template('basicRun.html')
+
+@app.route('/onAir')
+def air():
+    return render_template('onAir.html')
+
+@app.route('/kneePunch')
+def knee():
+    return render_template('kneePunch.html')
+
+@app.route('/balanceTest')
+def balance():
+    return render_template('balanceTest.html')
+
+@app.route('/squatJump')
+def squat():
+    return render_template('squatJump.html')
 
 @app.route('/mainScreen')
 def main():
@@ -23,6 +39,22 @@ def video_feed():
 @app.route('/video_basic')
 def video_basic():
     return Response(basicRun.basicRun(), mimetype='multipart/x-mixed-replace; boundary=image')
+
+@app.route('/video_air')
+def video_air():
+    return Response(onAir.air(), mimetype='multipart/x-mixed-replace; boundary=image')
+
+@app.route('/video_kneePunch')
+def video_kneePunch():
+    return Response(kneePunch.kneePunch(), mimetype='multipart/x-mixed-replace; boundary=image')
+
+@app.route('/video_balance')
+def video_balance():
+    return Response(balanceTest.balanceTest(), mimetype='multipart/x-mixed-replace; boundary=image')
+
+@app.route('/video_squat')
+def video_squat():
+    return Response(squatJump.squatJump(), mimetype='multipart/x-mixed-replace; boundary=image')
 
 @app.route('/video_main')
 def video_main():

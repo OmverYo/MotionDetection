@@ -57,3 +57,39 @@ class poseDetector():
                     if draw:
                         cv2.circle(img, (cx, cy), 5, (255, 0, 0), cv2.FILLED)
         return self.ankleList
+    
+    def findHip(self, img, draw = False):
+        self.hipList = []
+        if self.results.pose_landmarks:
+            for id, lm in enumerate(self.results.pose_landmarks.landmark):
+                if id in [23, 27]:
+                    h, w, c = img.shape
+                    cx, cy = int(lm.x * w), int(lm.y * h)
+                    self.hipList.append([id, cx, cy])
+                    if draw:
+                        cv2.circle(img, (cx, cy), 5, (255, 0, 0), cv2.FILLED)
+        return self.hipList
+
+    def findKnee(self, img, draw = False):
+        self.kneeList = []
+        if self.results.pose_landmarks:
+            for id, lm in enumerate(self.results.pose_landmarks.landmark):
+                if id in [11, 12, 15, 16, 25, 26]:
+                    h, w, c = img.shape
+                    cx, cy = int(lm.x * w), int(lm.y * h)
+                    self.kneeList.append([id, cx, cy])
+                    if draw:
+                        cv2.circle(img, (cx, cy), 5, (255, 0, 0), cv2.FILLED)
+        return self.kneeList
+    
+    def findKneeHip(self, img, draw = False):
+        self.kneeHipList = []
+        if self.results.pose_landmarks:
+            for id, lm in enumerate(self.results.pose_landmarks.landmark):
+                if id in [23, 25]:
+                    h, w, c = img.shape
+                    cx, cy = int(lm.x * w), int(lm.y * h)
+                    self.kneeHipList.append([cx, cy])
+                    if draw:
+                        cv2.circle(img, (cx, cy), 5, (255, 0, 0), cv2.FILLED)
+        return self.kneeHipList
