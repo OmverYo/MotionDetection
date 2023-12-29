@@ -16,8 +16,10 @@ def video_show():
 def gen_frames():
     while True:
         _, frame = cap.read()
+
         if not _:
             break
+        
         else:
             results = model(frame)
             results.print()
