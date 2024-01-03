@@ -43,6 +43,11 @@ interface HandDataRepository: JpaRepository<hand, Int>
 
 }
 
+interface RecommendRepository: JpaRepository<recommend, Int>
+{
+
+}
+
 @RestController
 @RequestMapping("api")
 class GameDataRestController(val GameDataRepo: GameDataRepository)
@@ -65,9 +70,23 @@ class BasicDataRestController(val BasicDataRepo: BasicDataRepository)
 	fun GetAll() = BasicDataRepo.findAll().last()
 
 	@PostMapping("BasicData")
-	fun SaveGameData(@RequestBody BasicData: basic_data)
+	fun SaveBasicData(@RequestBody BasicData: basic_data)
 	{
 		BasicDataRepo.save(BasicData)
+	}
+}
+
+@RestController
+@RequestMapping("api")
+class RecommendRestController(val RecommendRepo: RecommendRepository)
+{
+	@GetMapping("Recommend")
+	fun GetAll() = RecommendRepo.findAll().last()
+
+	@PostMapping("Recommend")
+	fun SaveRecommend(@RequestBody Recommend: recommend)
+	{
+		RecommendRepo.save(Recommend)
 	}
 }
 
@@ -133,7 +152,8 @@ class mt_training_result(
 	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
 	var play_id: Int = 0,
 	var capture_time: Int = 0,
-	var accuracy: Int = 0
+	var accuracy: Int = 0,
+	var content_url: String = ""
 )
 
 @Entity
@@ -183,4 +203,11 @@ class hand(
 	var ry: Int = 0,
 	var lx: Int = 0,
 	var ly: Int = 0
+)
+
+@Entity
+class recommend(
+	@Id
+	var user_id: Int = 0,
+	var content_url: String = ""
 )
