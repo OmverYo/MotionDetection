@@ -1,5 +1,18 @@
 import requests
 import json
+import mysql.connector
+import pymysql
+from sshtunnel import SSHTunnelForwarder
+
+mydb = mysql.connector.connect(host = "db-kl7j1.vpc-cdb.ntruss.com", port=3306, user = "mp_admin", password = "humanf1002~", database = "metaports")
+
+if mydb:
+    print("Yes")
+
+else:
+    print("No")
+
+mycursor = mydb.cursor()
 
 def gamedata_api(path, method):
     API_HOST = "http://localhost:8080/api"
