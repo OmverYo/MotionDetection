@@ -52,7 +52,7 @@ def openMain():
 
 @app.route('/main', methods=['GET'])
 def main():
-    return jsonify(openMain())
+    return openMain()
 
 # @app.route('/main')
 # def main():
