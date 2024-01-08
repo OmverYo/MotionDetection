@@ -1,0 +1,8 @@
+opencv-python
+mediapipe
+json
+numpy
+scipy
+fastdtw
+Flask
+mediapipe
