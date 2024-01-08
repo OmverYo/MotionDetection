@@ -1,13 +1,10 @@
 import cv2
 import poseModule as pm
-import mysql.connector
+import api
 
 def mainScreen():
     user_cam = cv2.VideoCapture(0)
     detector = pm.poseDetector()
-
-    mydb = mysql.connector.connect(host = "localhost", user = "root", password = "0000", database = "metaports")
-    mycursor = mydb.cursor()
 
     while user_cam.isOpened():
         try:
@@ -15,10 +12,9 @@ def mainScreen():
 
             image_1 = detector.findPose(image_1)
             handList_user = detector.findHand(image_1)
+            value = [handList_user[1][1], handList_user[1][2], handList_user[0][1], handList_user[0][2]]
 
-            sql = "UPDATE hand SET rx = %s, ry = %s, lx = %s, ly = %s WHERE hand_id = 1"
-            mycursor.execute(sql, (handList_user[1][1], handList_user[1][2], handList_user[0][1], handList_user[0][2]))
-            mydb.commit()
+            api.gamedata_api("/HandData/1", "PUT", value)
 
             ret_val, buffer = cv2.imencode('.jpg', image_1)
 

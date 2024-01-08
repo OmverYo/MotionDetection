@@ -1,6 +1,7 @@
 import cv2, time
 import poseModule as pm
 import mysql.connector
+import api
 
 def balanceTest():
     # 초기 위치 설정 및 준비 시간 계산을 위한 변수
@@ -17,9 +18,7 @@ def balanceTest():
     mydb = mysql.connector.connect(host = "localhost", user = "root", password = "0000", database = "metaports")
     mycursor = mydb.cursor()
 
-    sql = "INSERT INTO program_running (is_running) VALUES (1)"
-    mycursor.execute(sql)
-    mydb.commit()
+    api.gamedata_api("/ProgramData", "POST", True)
 
     startTimer = time.time()
     endTimer = time.time()
@@ -34,12 +33,11 @@ def balanceTest():
         try:
             image = detector.findPose(image)
             results = detector.findKneeHip(image)
-
             handList_user = detector.findHand(image)
 
-            sql = "UPDATE hand SET rx = %s, ry = %s, lx = %s, ly = %s WHERE hand_id = 1"
-            mycursor.execute(sql, (handList_user[1][1], handList_user[1][2], handList_user[0][1], handList_user[0][2]))
-            mydb.commit()
+            value = [handList_user[1][1], handList_user[1][2], handList_user[0][1], handList_user[0][2]]
+
+            api.gamedata_api("/HandData/1", "PUT", value)
 
             leftHip = [results[0][0], results[0][1]]
             leftKnee = [results[1][0], results[1][1]]
@@ -62,13 +60,11 @@ def balanceTest():
 
                     print("평형 유지 시간:", round(balanceTime, 3), "초")
 
-                    sql = "INSERT INTO program_running (is_running) VALUES (0)"
-                    mycursor.execute(sql)
-                    mydb.commit()
+                    api.gamedata_api("/ProgramData", "POST", False)
 
-                    sql = "INSERT INTO basic_data (reaction_time, on_air, squat_jump, knee_punch, balance_test) VALUES (0, 0, 0, 0, 10)"
-                    mycursor.execute(sql)
-                    mydb.commit()
+                    value = [0, 0, 0, 0, 5]
+
+                    api.gamedata_api("BasicData", "POST", value)
 
                     break
         except:
@@ -80,5 +76,7 @@ def balanceTest():
 
         yield (b'--image\r\n'
             b'Content-Type: image/jpeg\r\n\r\n' + image + b'\r\n')
-        
+    
+    api.gamedata_api("/ProgramData", "DELETE", None)
+    
     user_cam.release()

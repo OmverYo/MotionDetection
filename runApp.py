@@ -1,6 +1,6 @@
 from flask import Flask, render_template, Response
-import mysql.connector
 import mainScreen, gameRun, basicRun, onAir, kneePunch, balanceTest, squatJump
+import api
 
 app = Flask(__name__)
 
@@ -61,9 +61,14 @@ def video_main():
     return Response(mainScreen.mainScreen(), mimetype='multipart/x-mixed-replace; boundary=image')
 
 if __name__ == '__main__':
-    mydb = mysql.connector.connect(host = "localhost", user = "root", password = "0000", database = "metaports")
+    variable = [0, 0, 0, 0]
 
-    if not mydb:
-        exit()
+    result = api.gamedata_api("/HandData", "GET", variable)
+
+    if result:
+        pass
     
+    else:
+        exit()
+
     app.run(debug=True)

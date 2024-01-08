@@ -4,17 +4,14 @@ import mediapipe as mp
 import poseModule as pm
 from scipy.spatial.distance import cosine
 from fastdtw import fastdtw
-import mysql.connector
 import pathlib
+import api
 
 def gameRun():
     path = str(pathlib.Path(__file__).parent.resolve()).replace("\\", "/") + "/"
 
     mp_selfie_segmentation = mp.solutions.selfie_segmentation
     selfie_segmentation = mp_selfie_segmentation.SelfieSegmentation(model_selection = 0)
-
-    mydb = mysql.connector.connect(host = "localhost", user = "root", password = "0000", database = "metaports")
-    mycursor = mydb.cursor()
 
     user_cam = cv2.VideoCapture(0)
 
@@ -32,15 +29,13 @@ def gameRun():
 
     is_vr = False
 
-    sql = "SELECT * FROM background"
+    result = api.gamedata_api("/BackgroundData", "GET", None)
 
-    mycursor.execute(sql)
+    result = result.replace("\"", "").replace("{", "").replace("}", "").replace(":", " ").replace(",", " ").split(" ")
 
-    result = mycursor.fetchall()
-
-    myVR = result[-1][1]
-    bg_name = result[-1][2]
-    coord_name = result[-1][3]
+    myVR = result[3]
+    bg_name = result[5]
+    coord_name = result[7]
 
     if myVR == 1:
         is_vr = True
@@ -60,13 +55,9 @@ def gameRun():
         accuracyList.append(json_data[a])
         a += 1
     
-    sql = "TRUNCATE TABLE background"
-    mycursor.execute(sql)
-    mydb.commit()
+    api.gamedata_api("/BackgroundData", "DELETE", None)
 
-    sql = "INSERT INTO program_running (is_running) VALUES (1)"
-    mycursor.execute(sql)
-    mydb.commit()
+    api.gamedata_api("/ProgramData", "POST", True)
 
     start = round(time.time(), 1)
     end = round(time.time(), 1)
@@ -79,9 +70,9 @@ def gameRun():
             lmList_user = detector.findPosition(image_1)
             handList_user = detector.findHand(image_1)
 
-            sql = "UPDATE hand SET rx = %s, ry = %s, lx = %s, ly = %s WHERE hand_id = 1"
-            mycursor.execute(sql, (handList_user[1][1], handList_user[1][2], handList_user[0][1], handList_user[0][2]))
-            mydb.commit()
+            value = [handList_user[1][1], handList_user[1][2], handList_user[0][1], handList_user[0][2]]
+
+            api.gamedata_api("/HandData/1", "PUT", value)
 
             error, _ = fastdtw(lmList_user, accuracyList, dist = cosine)
 
@@ -130,9 +121,9 @@ def gameRun():
                     accuracyList.append(json_data[a])
                     a += 1
                 
-                sql = "INSERT INTO mt_training_result (capture_time, accuracy) VALUES (%s, %s)"
-                mycursor.execute(sql, totalAccuracyList[-1])
-                mydb.commit()
+                value = [totalAccuracyList[-1][0], totalAccuracyList[-1][1], 0]
+
+                api.gamedata_api("/GameData", "POST", value)
 
                 start = round(time.time(), 1)
 
@@ -163,9 +154,7 @@ def gameRun():
         except:
             print("비교 모듈이 종료됩니다")
 
-            sql = "TRUNCATE TABLE program_running"
-            mycursor.execute(sql)
-            mydb.commit()
+            api.gamedata_api("/ProgramData", "DELETE", None)
 
             break
 
@@ -179,6 +168,6 @@ def gameRun():
 
         total = int(total / len(totalAccuracyList))
 
-        sql = "INSERT INTO player_data (total, perfect_frame, awesome_frame, good_frame, ok_frame, bad_frame) VALUES (%s, %s, %s, %s, %s, %s)"
-        mycursor.execute(sql, (total, perfect_frame, awesome_frame, good_frame, ok_frame, bad_frame))
-        mydb.commit()
+        value = [total, perfect_frame, awesome_frame, good_frame, ok_frame, bad_frame]
+
+        api.gamedata_api("/PlayerData", "POST", value)
